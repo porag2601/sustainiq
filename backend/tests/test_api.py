@@ -119,7 +119,8 @@ def test_cors_blocks_other_origin():
 def test_analyse_saves_and_returns_id():
     body = client.post("/analyse", json=AT_BENCHMARK).json()
     assert body["id"] == 1
-    assert body["created_at"]
+    # "Z" = UTC, so browsers convert the time to local time correctly.
+    assert body["created_at"].endswith("Z")
 
 
 def test_assessments_list_newest_first():
@@ -129,6 +130,7 @@ def test_assessments_list_newest_first():
     assert [row["company_name"] for row in rows] == ["Second GmbH", "Test GmbH"]
     assert rows[0]["overall_score"] == 50
     assert rows[0]["sector"] == "other"
+    assert rows[0]["created_at"].endswith("Z")
 
 
 def test_get_one_assessment_matches_analyse_response():

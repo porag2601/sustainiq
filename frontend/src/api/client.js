@@ -25,15 +25,12 @@ function toFieldErrors(detail) {
   return errors
 }
 
-// Send one company's data and return { score, ai_analysis, ai_error }.
-export async function analyseCompany(data) {
+// Shared by all calls below: sends the request and turns every kind of
+// failure into an Error with a message the user can understand.
+async function request(path, options = {}) {
   let response
   try {
-    response = await fetch(`${API_URL}/analyse`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
+    response = await fetch(`${API_URL}${path}`, options)
   } catch {
     // fetch() only throws when there is no response at all:
     // backend not running, wrong URL, or blocked by CORS.
@@ -44,8 +41,30 @@ export async function analyseCompany(data) {
     const body = await response.json()
     throw new ValidationError(toFieldErrors(body.detail))
   }
+  if (response.status === 404) {
+    throw new Error('Not found. It may have been deleted.')
+  }
   if (!response.ok) {
     throw new Error(`The server returned an error (HTTP ${response.status}).`)
   }
   return response.json()
+}
+
+// Score, analyse and save one company. Returns { id, created_at, score, ai_analysis, ai_error }.
+export function analyseCompany(data) {
+  return request('/analyse', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+// Saved assessments, newest first: [{ id, created_at, company_name, sector, overall_score }].
+export function listAssessments() {
+  return request('/assessments')
+}
+
+// One saved assessment, in the same shape as analyseCompany() returns.
+export function getAssessment(id) {
+  return request(`/assessments/${id}`)
 }

@@ -1,6 +1,7 @@
 import AiAnalysis from '../components/AiAnalysis'
 import BenchmarkChart from '../components/BenchmarkChart'
 import MetricCard from '../components/MetricCard'
+import { formatDate } from '../metrics'
 
 // Same +/- 5 band around 50 as ON_PAR_BAND in backend/app/scoring.py.
 function overallLabel(score) {
@@ -26,6 +27,11 @@ function Results({ result, companyName, onReset }) {
         <p className="mt-3 text-xs text-slate-500">
           50 = exactly at the sector benchmark. Benchmarks are indicative estimates, not official statistics.
         </p>
+        {result.id && (
+          <p className="mt-1 text-xs text-slate-500">
+            Assessment #{result.id} · saved {formatDate(result.created_at)}
+          </p>
+        )}
       </section>
 
       <BenchmarkChart metrics={score.metrics} />

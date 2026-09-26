@@ -76,7 +76,10 @@ def analyse(data: AssessmentInput, db: DbSession) -> AnalysisResponse:
         response = AnalysisResponse(score=score, ai_analysis=None, ai_error=str(exc))
 
     record = save_assessment(db, data, response)
-    return response.model_copy(update={"id": record.id, "created_at": record.created_at})
+    # model_validate (not model_copy) so the UTC validator on created_at runs.
+    return AnalysisResponse.model_validate(
+        {**response.model_dump(), "id": record.id, "created_at": record.created_at}
+    )
 
 
 @app.get("/assessments", response_model=list[AssessmentSummary])

@@ -11,6 +11,24 @@ export const METRIC_LABELS = {
   recycling_rate_pct: 'Recycling rate',
 }
 
+// Values must match the Sector enum in backend/app/models.py.
+export const SECTORS = [
+  { value: 'manufacturing', label: 'Manufacturing' },
+  { value: 'logistics_transport', label: 'Logistics & Transport' },
+  { value: 'food_retail', label: 'Food & Retail' },
+  { value: 'construction', label: 'Construction' },
+  { value: 'other', label: 'Other' },
+]
+
+export function sectorLabel(value) {
+  return SECTORS.find((sector) => sector.value === value)?.label ?? value
+}
+
+// "2026-09-26T18:25:55Z" -> "26/09/2026, 20:25" in the viewer's local time.
+export function formatDate(isoString) {
+  return new Date(isoString).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+}
+
 export function metricLabel(key) {
   return METRIC_LABELS[key] ?? key
 }

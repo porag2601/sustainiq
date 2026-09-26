@@ -1,4 +1,5 @@
 import { Suspense, lazy, useState } from 'react'
+import PastAssessments from './components/PastAssessments'
 import AssessmentForm from './pages/AssessmentForm'
 
 // Code splitting: Results (and the large Recharts library it uses) is loaded
@@ -34,7 +35,11 @@ function App() {
             <Results result={result} companyName={companyName} onReset={() => setResult(null)} />
           </Suspense>
         ) : (
-          <AssessmentForm onResult={handleResult} />
+          <>
+            <AssessmentForm onResult={handleResult} />
+            {/* Mounted again each time the form is shown, so the list is always fresh. */}
+            <PastAssessments onOpen={handleResult} />
+          </>
         )}
       </div>
     </main>

@@ -106,3 +106,4 @@ sustainiq/
 - [x] Step 11: Results page (overall score, MetricCard per metric with indicative label + source, AiAnalysis with fallback notice, New assessment button). Phase 1 MVP feature-complete.
 - [x] Step 12 (Phase 2): BenchmarkChart with Recharts (horizontal bars of 0-100 scores, dashed benchmark line at 50, tooltip with real values), shared metrics.js, Results lazy-loaded (code splitting)
 - [x] Step 13 (Phase 2): database.py (SQLAlchemy 2.1, SQLite, assessments table with JSON input/result), /analyse saves + returns id, GET /assessments and GET /assessments/{id}, in-memory test DB via dependency override, 77 tests passing
+- [x] Step 14 (Phase 2): PastAssessments list on form page (opens saved report), shared request() helper in client.js, dates sent as UTC ("Z") and shown in local time

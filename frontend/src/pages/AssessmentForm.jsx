@@ -1,16 +1,7 @@
 import { useState } from 'react'
 import { ValidationError, analyseCompany } from '../api/client'
 import FormField from '../components/FormField'
-
-// Values must match the Sector enum in backend/app/models.py.
-// Labels are what the user sees.
-const SECTORS = [
-  { value: 'manufacturing', label: 'Manufacturing' },
-  { value: 'logistics_transport', label: 'Logistics & Transport' },
-  { value: 'food_retail', label: 'Food & Retail' },
-  { value: 'construction', label: 'Construction' },
-  { value: 'other', label: 'Other' },
-]
+import { SECTORS } from '../metrics'
 
 // Number fields. min/max mirror the backend rules, so the browser catches
 // most mistakes before sending; the backend still checks everything.
