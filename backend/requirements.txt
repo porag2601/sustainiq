@@ -6,3 +6,6 @@ fastapi==0.141.1
 uvicorn==0.54.0
 # Loads settings (API key, model name, CORS origins) from .env with validation.
 pydantic-settings==2.15.0
+
+# Test runner (development only, not needed to run the app).
+pytest==9.1.1
