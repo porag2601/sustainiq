@@ -92,3 +92,4 @@ sustainiq/
 (Claude Code updates this after each step)
 - [x] Step 1: project scaffold, .gitignore, Git init
   - Python 3.11.9 installed (user scope, on PATH).
+- [x] Step 2: backend venv, requirements.txt (fastapi, uvicorn), FastAPI app with GET /health

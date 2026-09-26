@@ -1,0 +1,6 @@
+# Pinned versions so every machine (and Render later) installs the same code.
+
+# Web framework: routes, request validation (via Pydantic), auto API docs.
+fastapi==0.141.1
+# ASGI server that actually runs the FastAPI app and listens for HTTP requests.
+uvicorn==0.54.0
