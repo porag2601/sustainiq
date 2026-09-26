@@ -72,6 +72,12 @@ export function getAssessment(id) {
   return request(`/assessments/${id}`)
 }
 
+// CSRD data checklist: [{ id, standard, reference, title, hint }].
+// Defined only in the backend (csrd.py), so both sides always match.
+export function getCsrdChecklist() {
+  return request('/csrd/checklist')
+}
+
 // Link target for the PDF report. A normal link (not fetch) is enough:
 // the backend sends "Content-Disposition: attachment", so the browser downloads it.
 export function assessmentPdfUrl(id) {

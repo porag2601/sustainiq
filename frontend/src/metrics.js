@@ -29,6 +29,19 @@ export function formatDate(isoString) {
   return new Date(isoString).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
 }
 
+// ESRS standards used in this tool (checklist, AI recommendations, CSRD gaps).
+export const ESRS_LABELS = {
+  'ESRS 2': 'ESRS 2 General disclosures',
+  E1: 'ESRS E1 Climate',
+  E2: 'ESRS E2 Pollution',
+  E3: 'ESRS E3 Water',
+  E5: 'ESRS E5 Resources',
+}
+
+export function esrsLabel(standard) {
+  return ESRS_LABELS[standard] ?? standard
+}
+
 export function metricLabel(key) {
   return METRIC_LABELS[key] ?? key
 }

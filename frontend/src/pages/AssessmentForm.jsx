@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ValidationError, analyseCompany } from '../api/client'
+import CsrdChecklist from '../components/CsrdChecklist'
 import FormField from '../components/FormField'
 import { SECTORS } from '../metrics'
 
@@ -19,6 +20,7 @@ const EMPTY_FORM = {
   company_name: '',
   sector: 'manufacturing',
   ...Object.fromEntries(NUMBER_FIELDS.map((field) => [field.name, ''])),
+  csrd_available: [], // ids of ticked checklist items
 }
 
 // A realistic example so the form can be tested with one click.
@@ -32,9 +34,11 @@ const EXAMPLE = {
   waste_t: '60',
   recycling_rate_pct: '55',
   water_m3: '1200',
+  csrd_available: ['e1_energy_mix', 'e1_scope12', 'e3_water', 'e5_waste'],
 }
 
-function AssessmentForm({ onResult }) {
+// checklist: CSRD checklist items from the backend (null while loading or if unavailable).
+function AssessmentForm({ onResult, checklist }) {
   // One state object for all fields. Inputs always give strings,
   // so numbers are converted only when sending.
   const [form, setForm] = useState(EMPTY_FORM)
@@ -124,6 +128,27 @@ function AssessmentForm({ onResult }) {
           />
         ))}
       </div>
+
+      {/* The checklist is optional: if it could not be loaded, the form still works. */}
+      {checklist?.length > 0 && (
+        <div className="border-t border-slate-200 pt-6">
+          <h3 className="font-semibold">CSRD data checklist (optional)</h3>
+          <p className="mt-1 text-sm text-slate-600">
+            Tick the data your company already collects. This shows your CSRD reporting readiness and
+            focuses the AI on the gaps.
+          </p>
+          <div className="mt-4">
+            <CsrdChecklist
+              items={checklist}
+              selected={form.csrd_available}
+              onChange={(ids) => setForm((previous) => ({ ...previous, csrd_available: ids }))}
+            />
+          </div>
+          {fieldErrors.csrd_available && (
+            <p className="mt-2 text-sm text-red-600">{fieldErrors.csrd_available}</p>
+          )}
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">

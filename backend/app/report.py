@@ -15,6 +15,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from app.csrd import item_titles
 from app.models import AnalysisResponse, AssessmentInput
 
 # Readable names; the same labels as frontend/src/metrics.js.
@@ -38,7 +39,7 @@ STATUS = {
     "on_par": ("On par", colors.HexColor("#b45309")),
     "worse": ("Worse", colors.HexColor("#b91c1c")),
 }
-ESRS_NAMES = {"E1": "ESRS E1 Climate", "E2": "ESRS E2 Pollution", "E3": "ESRS E3 Water", "E5": "ESRS E5 Resources"}
+ESRS_NAMES = {"ESRS 2": "ESRS 2 General disclosures", "E1": "ESRS E1 Climate", "E2": "ESRS E2 Pollution", "E3": "ESRS E3 Water", "E5": "ESRS E5 Resources"}
 
 GREEN = colors.HexColor("#047857")
 GREY = colors.HexColor("#64748b")
@@ -97,6 +98,39 @@ def _metric_table(result: AnalysisResponse) -> Table:
         ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
     ]))
     return table
+
+
+def _csrd_section(result: AnalysisResponse) -> list:
+    readiness = result.csrd
+    if readiness is None:  # saved before the checklist existed
+        return []
+
+    rows = [["Standard", "Available"]] + [
+        [ESRS_NAMES.get(s.standard, s.standard), f"{s.available} / {s.total}"] for s in readiness.standards
+    ]
+    table = Table(rows, colWidths=[6 * cm, 3 * cm], hAlign="LEFT")
+    table.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+        ("LINEBELOW", (0, 0), (-1, 0), 1, GREY),
+        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+    ]))
+
+    story = [
+        Paragraph("CSRD data readiness", H2),
+        Paragraph(f"<b>{readiness.available} of {readiness.total}</b> key ESRS data points available "
+                  f"({readiness.percent:.1f} %).", BODY),
+        Spacer(1, 4),
+        table,
+    ]
+    missing = item_titles(readiness.missing_ids)
+    if missing:
+        story += [Spacer(1, 6), Paragraph("<b>Missing data points:</b>", BODY)]
+        story += [_p(f"• {title}") for title in missing]
+    story.append(_p("Simplified checklist of key data points, not the full ESRS. References follow "
+                    "ESRS Set 1 (2023); the EU is simplifying the ESRS (Omnibus), so numbering and "
+                    "scope may change.", SMALL))
+    return story
 
 
 def _ai_section(result: AnalysisResponse) -> list:
@@ -178,6 +212,7 @@ def build_pdf(data: AssessmentInput, result: AnalysisResponse) -> bytes:
     if any_indicative:
         story.append(_p("* Benchmarks are indicative estimates, not official statistics.", SMALL))
     story += [_p(f"Source: {source}", SMALL) for source in sources]
+    story += _csrd_section(result)
     story += _ai_section(result)
 
     doc.build(story, onFirstPage=_footer, onLaterPages=_footer)

@@ -3,6 +3,7 @@ valid PDF is produced for every case; the layout is checked by eye."""
 
 from datetime import datetime
 
+from app.csrd import compute_readiness
 from app.models import AIAnalysis, AnalysisResponse, AssessmentInput
 from app.report import build_pdf
 from app.scoring import score_assessment
@@ -48,6 +49,11 @@ def test_markup_characters_in_user_and_ai_text_do_not_break_the_pdf():
     tricky = DATA.model_copy(update={"company_name": "A & B <Holding> GmbH"})
     analysis = ANALYSIS.model_copy(update={"summary": "Use <less> energy & more renewables > 50 %"})
     assert is_pdf(build_pdf(tricky, make_result(ai_analysis=analysis)))
+
+
+def test_report_with_csrd_readiness_is_a_pdf():
+    result = make_result().model_copy(update={"csrd": compute_readiness(["e1_scope12", "e3_water"])})
+    assert is_pdf(build_pdf(DATA, result))
 
 
 def test_unsaved_result_without_id_and_date_works():

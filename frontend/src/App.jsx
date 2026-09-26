@@ -1,4 +1,5 @@
-import { Suspense, lazy, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
+import { getCsrdChecklist } from './api/client'
 import PastAssessments from './components/PastAssessments'
 import AssessmentForm from './pages/AssessmentForm'
 
@@ -11,6 +12,15 @@ const Results = lazy(() => import('./pages/Results'))
 function App() {
   const [result, setResult] = useState(null)
   const [companyName, setCompanyName] = useState('')
+  // Loaded once here and shared by the form and the results page.
+  // Stays null if loading fails: the checklist is optional, the app works without it.
+  const [checklist, setChecklist] = useState(null)
+
+  useEffect(() => {
+    getCsrdChecklist()
+      .then(setChecklist)
+      .catch(() => setChecklist(null))
+  }, [])
 
   function handleResult(newResult, name) {
     setResult(newResult)
@@ -32,11 +42,16 @@ function App() {
         {result ? (
           // Suspense shows the fallback while the Results code is downloading.
           <Suspense fallback={<p className="text-center text-slate-500">Loading results…</p>}>
-            <Results result={result} companyName={companyName} onReset={() => setResult(null)} />
+            <Results
+              result={result}
+              companyName={companyName}
+              checklist={checklist}
+              onReset={() => setResult(null)}
+            />
           </Suspense>
         ) : (
           <>
-            <AssessmentForm onResult={handleResult} />
+            <AssessmentForm onResult={handleResult} checklist={checklist} />
             {/* Mounted again each time the form is shown, so the list is always fresh. */}
             <PastAssessments onOpen={handleResult} />
           </>

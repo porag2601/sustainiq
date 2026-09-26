@@ -1,12 +1,7 @@
+import { esrsLabel } from '../metrics'
+
 // Claude's text: summary, recommendations, CSRD gaps, quick wins.
 // If the AI call failed, shows a notice instead (the score is still valid).
-
-const ESRS_NAMES = {
-  E1: 'ESRS E1 Climate',
-  E2: 'ESRS E2 Pollution',
-  E3: 'ESRS E3 Water',
-  E5: 'ESRS E5 Resources',
-}
 
 // Full class strings so Tailwind can find them (see MetricCard.jsx).
 const PRIORITY_STYLES = {
@@ -18,7 +13,7 @@ const PRIORITY_STYLES = {
 function EsrsBadge({ standard }) {
   return (
     <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-800">
-      {ESRS_NAMES[standard] ?? standard}
+      {esrsLabel(standard)}
     </span>
   )
 }

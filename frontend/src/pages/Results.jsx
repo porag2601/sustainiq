@@ -1,13 +1,14 @@
 import { assessmentPdfUrl } from '../api/client'
 import AiAnalysis from '../components/AiAnalysis'
 import BenchmarkChart from '../components/BenchmarkChart'
+import CsrdReadiness from '../components/CsrdReadiness'
 import MetricCard from '../components/MetricCard'
 import ProgressChart from '../components/ProgressChart'
 import ScoreGauge from '../components/ScoreGauge'
 import { formatDate } from '../metrics'
 
 // result = { id, created_at, score, ai_analysis, ai_error } from the backend.
-function Results({ result, companyName, onReset }) {
+function Results({ result, companyName, checklist, onReset }) {
   const { score, ai_analysis: analysis, ai_error: aiError } = result
 
   return (
@@ -37,6 +38,9 @@ function Results({ result, companyName, onReset }) {
           ))}
         </div>
       </section>
+
+      {/* Assessments saved before the checklist existed have csrd = null. */}
+      {result.csrd && <CsrdReadiness readiness={result.csrd} checklist={checklist} />}
 
       <AiAnalysis analysis={analysis} error={aiError} />
 
