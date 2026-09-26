@@ -1,0 +1,35 @@
+# --- Secrets -------------------------------------------------------------
+# .env holds the Anthropic API key. It must never reach Git history,
+# because a leaked key can be abused and billed to the owner.
+.env
+.env.*
+# The example file has placeholder values only, so it is safe to share.
+!.env.example
+
+# --- Python (backend) ----------------------------------------------------
+# Bytecode and caches are regenerated automatically on every run.
+__pycache__/
+*.pyc
+# Virtual environments are machine-specific; others rebuild them from requirements.txt.
+.venv/
+venv/
+.pytest_cache/
+
+# --- Node (frontend) -----------------------------------------------------
+# node_modules is rebuilt by "npm install" from package.json / package-lock.json.
+node_modules/
+# Build output is created by "npm run build" and deployed, not versioned.
+dist/
+.vite/
+
+# --- Local database ------------------------------------------------------
+# SQLite files contain real assessment data from local testing (Phase 2).
+*.db
+*.sqlite3
+
+# --- OS and editor files -------------------------------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/settings.local.json
