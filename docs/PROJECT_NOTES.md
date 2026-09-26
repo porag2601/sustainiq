@@ -116,3 +116,5 @@ sustainiq/
 - [x] Step 19 (Phase 3): CSRD checklist frontend (CsrdChecklist checkboxes in form, loaded once in App), CsrdReadiness card on results, CSRD section in PDF, shared ESRS labels, 99 tests passing
 - [x] Step 20 (Phase 3): deployment prep: PostgreSQL support (psycopg 3, URL normalisation, pool_pre_ping), render.yaml Blueprint (Frankfurt, health check, secrets sync:false), 104 tests passing
   - TODO (needs user accounts): Neon database, Render Blueprint, Vercel project; live test against real PostgreSQL
+- [x] Step 21 (Phase 3): README (pitch, features, mermaid architecture, design decisions, scoring method, setup, tests, deployment, limitations), frontend README replaced
+  - TODO: add live demo link and screenshots after deployment + real Claude run
