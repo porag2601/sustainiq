@@ -9,3 +9,6 @@ pydantic-settings==2.15.0
 
 # Test runner (development only, not needed to run the app).
 pytest==9.1.1
+# HTTP client used by FastAPI's TestClient to send requests in API tests.
+# httpx2, not httpx: Starlette deprecated httpx for its TestClient.
+httpx2==2.13.1

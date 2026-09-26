@@ -98,3 +98,4 @@ sustainiq/
 - [x] Step 5: benchmarks.py (5 sectors x 6 metrics, all indicative with source), 29 tests passing
   - TODO: verify values against real Eurostat/UBA downloads; switch to indicative=False only with exact table + year
 - [x] Step 6: scoring.py (per-FTE metrics, linear 0-100 metric score, weighted overall score), MetricResult/ScoreResult schemas, 51 tests passing
+- [x] Step 7: POST /analyse (validated input, returns ScoreResult, no Claude yet), API tests with TestClient + httpx2, 57 tests passing
