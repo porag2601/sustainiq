@@ -1,3 +1,4 @@
+import { assessmentPdfUrl } from '../api/client'
 import AiAnalysis from '../components/AiAnalysis'
 import BenchmarkChart from '../components/BenchmarkChart'
 import MetricCard from '../components/MetricCard'
@@ -36,13 +37,24 @@ function Results({ result, companyName, onReset }) {
 
       <AiAnalysis analysis={analysis} error={aiError} />
 
-      <button
-        type="button"
-        onClick={onReset}
-        className="w-full rounded-md border border-emerald-700 px-4 py-2 font-medium text-emerald-700 hover:bg-emerald-50"
-      >
-        New assessment
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        {/* Only saved assessments have an id, and the PDF is built from the saved data. */}
+        {result.id && (
+          <a
+            href={assessmentPdfUrl(result.id)}
+            className="flex-1 rounded-md bg-emerald-700 px-4 py-2 text-center font-medium text-white hover:bg-emerald-800"
+          >
+            Download PDF report
+          </a>
+        )}
+        <button
+          type="button"
+          onClick={onReset}
+          className="flex-1 rounded-md border border-emerald-700 px-4 py-2 font-medium text-emerald-700 hover:bg-emerald-50"
+        >
+          New assessment
+        </button>
+      </div>
     </div>
   )
 }

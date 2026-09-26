@@ -143,3 +143,16 @@ def test_get_missing_assessment_returns_404():
     response = client.get("/assessments/999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Assessment not found"}
+
+
+def test_download_pdf():
+    created = client.post("/analyse", json=AT_BENCHMARK).json()
+    response = client.get(f"/assessments/{created['id']}/pdf")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert 'filename="sustainiq-assessment-1.pdf"' in response.headers["content-disposition"]
+    assert response.content.startswith(b"%PDF-")
+
+
+def test_pdf_for_missing_assessment_returns_404():
+    assert client.get("/assessments/999/pdf").status_code == 404

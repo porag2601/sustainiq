@@ -31,7 +31,7 @@ structure, and a clean Git history matter as much as features.
 - Backend: Python 3.11+, FastAPI, Pydantic v2
 - AI: Anthropic Python SDK. The model name lives in `.env` as `CLAUDE_MODEL` (never hardcode it)
 - Database: SQLite via SQLAlchemy (stores past assessments)
-- PDF export: decide in Phase 2 (WeasyPrint or ReportLab)
+- PDF export: ReportLab (decided in Phase 2: pure Python, no system libraries needed on Windows or Render)
 - Tests: pytest for the backend
 - Deployment: Vercel (frontend) + Render free tier (backend)
 
@@ -108,3 +108,4 @@ sustainiq/
 - [x] Step 13 (Phase 2): database.py (SQLAlchemy 2.1, SQLite, assessments table with JSON input/result), /analyse saves + returns id, GET /assessments and GET /assessments/{id}, in-memory test DB via dependency override, 77 tests passing
 - [x] Step 14 (Phase 2): PastAssessments list on form page (opens saved report), shared request() helper in client.js, dates sent as UTC ("Z") and shown in local time
 - [x] Step 15 (Phase 2): ScoreGauge (plain SVG semicircle, pathLength=100, status colour, benchmark tick at 50) replaces the big score number
+- [x] Step 16 (Phase 2): PDF report with ReportLab (report.py, GET /assessments/{id}/pdf, all user/AI text escaped), "Download PDF report" button, 83 tests passing. Phase 2 complete.

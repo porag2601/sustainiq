@@ -68,3 +68,9 @@ export function listAssessments() {
 export function getAssessment(id) {
   return request(`/assessments/${id}`)
 }
+
+// Link target for the PDF report. A normal link (not fetch) is enough:
+// the backend sends "Content-Disposition: attachment", so the browser downloads it.
+export function assessmentPdfUrl(id) {
+  return `${API_URL}/assessments/${id}/pdf`
+}

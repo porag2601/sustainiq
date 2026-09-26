@@ -8,6 +8,8 @@ uvicorn==0.54.0
 anthropic==1.8.0
 # Database toolkit: maps Python classes to SQLite tables (past assessments).
 sqlalchemy==2.1.1
+# PDF report export. Pure Python, so no system libraries needed on Windows or Render.
+reportlab==5.0.1
 # Loads settings (API key, model name, CORS origins) from .env with validation.
 pydantic-settings==2.15.0
 
