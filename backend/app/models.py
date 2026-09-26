@@ -5,6 +5,7 @@ Bad input (e.g. 120 % renewable share) gets an automatic 422 error response,
 so scoring and the Claude call only ever see clean, plausible numbers.
 """
 
+from datetime import datetime
 from enum import Enum
 from typing import Literal
 
@@ -108,7 +109,23 @@ class AIAnalysis(BaseModel):
 class AnalysisResponse(BaseModel):
     """What POST /analyse returns: the score always, the AI text if it worked."""
 
+    # Set once the assessment is saved in the database.
+    id: int | None = None
+    created_at: datetime | None = None
     score: ScoreResult
     # None when the Claude call failed; the score is still valid on its own.
     ai_analysis: AIAnalysis | None
     ai_error: str | None = None
+
+
+class AssessmentSummary(BaseModel):
+    """One row in the list of past assessments."""
+
+    # from_attributes: build this directly from a database record object.
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    created_at: datetime
+    company_name: str
+    sector: Sector
+    overall_score: float

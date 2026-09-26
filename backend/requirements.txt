@@ -6,6 +6,8 @@ fastapi==0.141.1
 uvicorn==0.54.0
 # Official Anthropic SDK: calls Claude and validates its JSON answer (structured outputs).
 anthropic==1.8.0
+# Database toolkit: maps Python classes to SQLite tables (past assessments).
+sqlalchemy==2.1.1
 # Loads settings (API key, model name, CORS origins) from .env with validation.
 pydantic-settings==2.15.0
 

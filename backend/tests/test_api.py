@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 import app.main
 from app.analyzer import AnalysisError
+from app.database import get_db
 from app.main import app as fastapi_app
 from app.models import AIAnalysis
 
@@ -22,6 +23,14 @@ def fake_claude(monkeypatch):
     so API tests never hit the network or spend API credits.
     """
     monkeypatch.setattr(app.main, "analyse_with_claude", lambda data, score: FAKE_ANALYSIS)
+
+
+@pytest.fixture(autouse=True)
+def test_db(db_session):
+    """Routes get the in-memory test database instead of the real file."""
+    fastapi_app.dependency_overrides[get_db] = lambda: db_session
+    yield
+    fastapi_app.dependency_overrides.clear()
 
 # Every value equals the "other" sector benchmark (10 FTE), so the score is 50.
 AT_BENCHMARK = {
@@ -103,3 +112,32 @@ def test_cors_blocks_other_origin():
         headers={"Origin": "http://evil.example", "Access-Control-Request-Method": "POST"},
     )
     assert "access-control-allow-origin" not in response.headers
+
+
+# --- saved assessments ----------------------------------------------------
+
+def test_analyse_saves_and_returns_id():
+    body = client.post("/analyse", json=AT_BENCHMARK).json()
+    assert body["id"] == 1
+    assert body["created_at"]
+
+
+def test_assessments_list_newest_first():
+    client.post("/analyse", json=AT_BENCHMARK)
+    client.post("/analyse", json={**AT_BENCHMARK, "company_name": "Second GmbH"})
+    rows = client.get("/assessments").json()
+    assert [row["company_name"] for row in rows] == ["Second GmbH", "Test GmbH"]
+    assert rows[0]["overall_score"] == 50
+    assert rows[0]["sector"] == "other"
+
+
+def test_get_one_assessment_matches_analyse_response():
+    created = client.post("/analyse", json=AT_BENCHMARK).json()
+    loaded = client.get(f"/assessments/{created['id']}").json()
+    assert loaded == created
+
+
+def test_get_missing_assessment_returns_404():
+    response = client.get("/assessments/999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Assessment not found"}

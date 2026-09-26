@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     # Default = Vite dev server. In production, set the real Vercel domain.
     cors_origins: str = "http://localhost:5173"
 
+    # Where past assessments are stored. Default: a file in backend/.
+    # SQLAlchemy URL format, so switching to PostgreSQL later is a config change.
+    database_url: str = "sqlite:///./sustainiq.db"
+
     # Path is relative to where uvicorn is started (the backend/ folder).
     # Real environment variables override values in .env, which is how
     # Render will inject secrets later.

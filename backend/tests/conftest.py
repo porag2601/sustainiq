@@ -10,3 +10,28 @@ import os
 
 os.environ.setdefault("ANTHROPIC_API_KEY", "test-key")
 os.environ.setdefault("CLAUDE_MODEL", "test-model")
+# In-memory database: tests can never write to the real sustainiq.db file.
+os.environ["DATABASE_URL"] = "sqlite://"
+
+import pytest  # noqa: E402  (imports must come after the environment setup)
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
+from sqlalchemy.pool import StaticPool  # noqa: E402
+
+from app.database import Base  # noqa: E402
+
+
+@pytest.fixture
+def db_session():
+    """A fresh, empty in-memory database for each test.
+
+    StaticPool keeps one single connection, because every new connection to
+    "sqlite://" would otherwise open a new, empty in-memory database.
+    """
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    Base.metadata.create_all(engine)
+    with sessionmaker(bind=engine)() as session:
+        yield session
+    engine.dispose()

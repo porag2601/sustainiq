@@ -1,21 +1,35 @@
 """FastAPI entry point for the SustainIQ backend.
 
-Routes: /health (is the server up?) and /analyse (score + AI analysis).
+Routes: /health, /analyse (score + AI analysis, saved), /assessments (history).
 """
 
-from fastapi import FastAPI
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
 from app.analyzer import AnalysisError, analyse_with_claude
 from app.config import get_settings
-from app.models import AnalysisResponse, AssessmentInput
+from app.database import create_tables, get_assessment, get_db, list_assessments, save_assessment
+from app.models import AnalysisResponse, AssessmentInput, AssessmentSummary
 from app.scoring import score_assessment
 
 # Loading settings here means a missing .env value stops the app at startup.
 settings = get_settings()
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Runs once when the server starts (before yield) and stops (after)."""
+    create_tables()
+    yield
+
+
 # Title and version appear in the auto-generated docs at /docs.
-app = FastAPI(title="SustainIQ API", version="0.1.0")
+app = FastAPI(title="SustainIQ API", version="0.1.0", lifespan=lifespan)
 
 # Browsers block a page on one origin (e.g. localhost:5173) from calling an
 # API on another origin (localhost:8000) unless the API allows it. We allow
@@ -26,6 +40,10 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
+# Dependency injection: FastAPI calls get_db() for each request and passes the
+# session in. Tests swap get_db for an in-memory database without changing routes.
+DbSession = Annotated[Session, Depends(get_db)]
 
 
 @app.get("/health")
@@ -42,8 +60,8 @@ def health() -> dict[str, str]:
 # waits, and FastAPI runs plain functions in a thread pool, so other requests
 # are not stuck behind it.
 @app.post("/analyse", response_model=AnalysisResponse)
-def analyse(data: AssessmentInput) -> AnalysisResponse:
-    """Score one company, then ask Claude to explain the result.
+def analyse(data: AssessmentInput, db: DbSession) -> AnalysisResponse:
+    """Score one company, ask Claude to explain the result, and save it.
 
     Typing the parameter as AssessmentInput makes FastAPI validate the JSON
     body first: invalid input gets a 422 and never reaches scoring or Claude.
@@ -51,10 +69,28 @@ def analyse(data: AssessmentInput) -> AnalysisResponse:
     score = score_assessment(data)
 
     # The score is deterministic and always available. If the AI part fails,
-    # still return the score and explain what went wrong, instead of a 500.
+    # still return (and save) the score and explain what went wrong.
     try:
-        ai_analysis = analyse_with_claude(data, score)
+        response = AnalysisResponse(score=score, ai_analysis=analyse_with_claude(data, score))
     except AnalysisError as exc:
-        return AnalysisResponse(score=score, ai_analysis=None, ai_error=str(exc))
+        response = AnalysisResponse(score=score, ai_analysis=None, ai_error=str(exc))
 
-    return AnalysisResponse(score=score, ai_analysis=ai_analysis)
+    record = save_assessment(db, data, response)
+    return response.model_copy(update={"id": record.id, "created_at": record.created_at})
+
+
+@app.get("/assessments", response_model=list[AssessmentSummary])
+def assessments(db: DbSession) -> list[AssessmentSummary]:
+    """List saved assessments, newest first."""
+    return [AssessmentSummary.model_validate(record) for record in list_assessments(db)]
+
+
+@app.get("/assessments/{assessment_id}", response_model=AnalysisResponse)
+def assessment(assessment_id: int, db: DbSession) -> AnalysisResponse:
+    """Return one saved assessment in the same shape as /analyse."""
+    record = get_assessment(db, assessment_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    return AnalysisResponse.model_validate(
+        {**record.result, "id": record.id, "created_at": record.created_at}
+    )
