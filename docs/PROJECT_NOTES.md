@@ -93,3 +93,4 @@ sustainiq/
 - [x] Step 1: project scaffold, .gitignore, Git init
   - Python 3.11.9 installed (user scope, on PATH).
 - [x] Step 2: backend venv, requirements.txt (fastapi, uvicorn), FastAPI app with GET /health
+- [x] Step 3: config.py (pydantic-settings, loads .env), CORS limited to frontend origin

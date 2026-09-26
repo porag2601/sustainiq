@@ -4,3 +4,5 @@
 fastapi==0.141.1
 # ASGI server that actually runs the FastAPI app and listens for HTTP requests.
 uvicorn==0.54.0
+# Loads settings (API key, model name, CORS origins) from .env with validation.
+pydantic-settings==2.15.0
