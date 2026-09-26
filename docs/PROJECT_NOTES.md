@@ -29,7 +29,8 @@ structure, and a clean Git history matter as much as features.
 - Frontend: React + Vite + Tailwind CSS (utility classes, not inline styles)
 - Charts: Recharts
 - Backend: Python 3.11+, FastAPI, Pydantic v2
-- AI: Anthropic Python SDK. The model name lives in `.env` as `CLAUDE_MODEL` (never hardcode it)
+- AI: Anthropic Python SDK, optional. The model name lives in `.env` as `CLAUDE_MODEL` (never hardcode it).
+  Without an API key the app must stay fully usable for free (rule-based text in `rules.py`).
 - Database: SQLite via SQLAlchemy (stores past assessments)
 - PDF export: ReportLab (decided in Phase 2: pure Python, no system libraries needed on Windows or Render)
 - Tests: pytest for the backend
@@ -118,3 +119,5 @@ sustainiq/
   - TODO (needs user accounts): Neon database, Render Blueprint, Vercel project; live test against real PostgreSQL
 - [x] Step 21 (Phase 3): README (pitch, features, mermaid architecture, design decisions, scoring method, setup, tests, deployment, limitations), frontend README replaced
   - TODO: add live demo link and screenshots after deployment + real Claude run
+- [x] Step 22: free rule-based analysis (rules.py) used when no API key is set or Claude fails; API key now optional (Settings.ai_enabled, placeholders count as unset); analysis_source "ai"/"rules" labelled in UI and PDF; shared labels.py; 123 tests passing
+  - Decision: app must run for free; Claude stays optional (user chose rule-based fallback over Ollama/other providers)

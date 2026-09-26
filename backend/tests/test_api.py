@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 import app.main
 from app.analyzer import AnalysisError
+from app.config import Settings
 from app.database import AssessmentRecord, get_db
 from app.main import app as fastapi_app
 from app.models import AIAnalysis
@@ -63,21 +64,36 @@ def test_analyse_returns_score_and_ai_analysis():
     assert first["benchmark_source"]
     assert first["benchmark_indicative"] is True
     assert body["ai_analysis"]["summary"] == "Test summary."
+    assert body["analysis_source"] == "ai"
     assert body["ai_error"] is None
 
 
-def test_analyse_still_returns_score_when_ai_fails(monkeypatch):
+def test_analyse_falls_back_to_rules_when_ai_fails(monkeypatch):
     def failing_claude(data, score):
         raise AnalysisError("AI analysis is busy. Please try again in a minute.")
 
     monkeypatch.setattr(app.main, "analyse_with_claude", failing_claude)
     response = client.post("/analyse", json=AT_BENCHMARK)
-    # Not a 500: the deterministic score is still useful without the AI text.
+    # Not a 500 and not an empty report: the rules write the text instead.
     assert response.status_code == 200
     body = response.json()
     assert body["score"]["overall_score"] == 50
-    assert body["ai_analysis"] is None
+    assert body["analysis_source"] == "rules"
+    assert body["ai_analysis"]["summary"].startswith("Test GmbH")
     assert "busy" in body["ai_error"]
+
+
+def test_analyse_without_api_key_uses_rules_and_never_calls_claude(monkeypatch):
+    def must_not_be_called(data, score):
+        raise AssertionError("Claude was called without an API key")
+
+    monkeypatch.setattr(app.main, "analyse_with_claude", must_not_be_called)
+    # Settings as they are without a key (or with the .env.example placeholders).
+    monkeypatch.setattr(app.main, "settings", Settings(anthropic_api_key="your-api-key-here", claude_model=""))
+    body = client.post("/analyse", json=AT_BENCHMARK).json()
+    assert body["analysis_source"] == "rules"
+    assert body["ai_error"] is None  # no key is a choice, not an error
+    assert body["ai_analysis"]["recommendations"]
 
 
 def test_analyse_rejects_invalid_input_with_422():

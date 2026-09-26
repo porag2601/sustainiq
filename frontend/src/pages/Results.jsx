@@ -42,7 +42,7 @@ function Results({ result, companyName, checklist, onReset }) {
       {/* Assessments saved before the checklist existed have csrd = null. */}
       {result.csrd && <CsrdReadiness readiness={result.csrd} checklist={checklist} />}
 
-      <AiAnalysis analysis={analysis} error={aiError} />
+      <AiAnalysis analysis={analysis} source={result.analysis_source} error={aiError} />
 
       <div className="flex flex-col gap-3 sm:flex-row">
         {/* Only saved assessments have an id, and the PDF is built from the saved data. */}

@@ -31,8 +31,10 @@ they are missing. SustainIQ gives a first, fast orientation:
 - **Benchmarking** of 6 metrics against sector values, normalised per employee (FTE).
 - **Deterministic 0-100 score** per metric and overall, with a gauge and a bar chart.
 - **CSRD data readiness** for 12 key ESRS data points (ESRS 2, E1, E2, E3, E5).
-- **AI analysis** (Claude): summary, recommendations mapped to ESRS standards,
-  CSRD gaps and quick wins, returned as validated structured JSON.
+- **Analysis text**: summary, recommendations mapped to ESRS standards (with German
+  funding hints), CSRD gaps and quick wins. Written by Claude as validated structured JSON
+  when an API key is set, otherwise **for free by a deterministic rule engine**. The page
+  always says which one wrote the text.
 - **History and progress tracking**: every assessment is saved; a line chart shows how a
   company's score develops over time.
 - **PDF report** for download.
@@ -45,9 +47,12 @@ flowchart LR
     B --> C[Pydantic validation]
     C --> D[Scoring in Python<br/>per-FTE metrics vs. benchmarks]
     C --> E[CSRD readiness in Python]
-    D --> F[Claude API<br/>text only, structured JSON]
+    D --> F{API key set?}
     E --> F
-    F --> G[(SQLite / PostgreSQL)]
+    F -->|yes| K[Claude API<br/>text only, structured JSON]
+    F -->|no, or AI fails| L[Rule engine<br/>free, deterministic]
+    K --> G[(SQLite / PostgreSQL)]
+    L --> G
     D --> G
     G --> H[Results page, charts, PDF]
 ```
@@ -59,8 +64,10 @@ flowchart LR
   text about numbers it is given and is instructed never to invent or recalculate figures.
 - **Structured AI output.** Claude's answer must match a Pydantic schema (Anthropic structured
   outputs), so the frontend never has to parse free text.
-- **Graceful degradation.** If the AI call fails (network, rate limit, invalid key), the
-  assessment still returns and saves the score; the page explains that the AI part is missing.
+- **Free by default, AI optional.** Without an API key, a rule engine (`rules.py`) writes the
+  text from the calculated figures: weakest metrics first, each missing CSRD data point with a
+  concrete next step. With a key, Claude writes it. If Claude fails (network, rate limit), the
+  rules take over, so a report is always complete. Rule text is labelled as such, never as AI.
 - **Honest data labels.** Every benchmark has a source. Estimated values are flagged
   `indicative` and shown as such in the UI and the PDF.
 - **Per-FTE normalisation.** A company ten times larger with ten times the energy use gets
@@ -89,7 +96,7 @@ water 10 %. Climate metrics weigh most because ESRS E1 (climate) is the core of 
 | AI | Anthropic Python SDK (Claude), model set via environment variable |
 | Database | SQLAlchemy 2 with SQLite (local) and PostgreSQL (production) |
 | PDF | ReportLab |
-| Tests | pytest (104 backend tests) |
+| Tests | pytest (123 backend tests) |
 | Hosting | Vercel (frontend), Render (backend), Neon (PostgreSQL) |
 
 ## Project structure
@@ -103,6 +110,8 @@ backend/
     scoring.py      per-FTE metrics, 0-100 score
     csrd.py         CSRD data checklist and readiness
     analyzer.py     prompt, Claude call, structured output
+    rules.py        free rule-based analysis text (used without API key)
+    labels.py       readable names shared by PDF and rules
     database.py     SQLAlchemy models and queries
     report.py       PDF report
   tests/            pytest suite (no network calls, in-memory database)
@@ -125,7 +134,7 @@ python -m venv .venv
 .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 copy .env.example .env          # macOS/Linux: cp .env.example .env
-# edit .env: ANTHROPIC_API_KEY and CLAUDE_MODEL
+# optional: set ANTHROPIC_API_KEY and CLAUDE_MODEL in .env for AI-written text
 uvicorn app.main:app --reload   # http://127.0.0.1:8000/docs
 
 # Frontend (second terminal)
@@ -134,8 +143,8 @@ npm install
 npm run dev                     # http://localhost:5173
 ```
 
-Without a valid API key the app still works: scores, charts, history and PDF are complete,
-only the AI text sections are replaced by a notice.
+The app is completely free to run without an API key: every feature works, and the analysis
+text comes from the rule engine instead of Claude.
 
 ## Tests
 

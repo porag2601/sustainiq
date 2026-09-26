@@ -17,6 +17,7 @@ from app.csrd import CHECKLIST, ChecklistItem, compute_readiness
 from app.database import create_tables, get_assessment, get_db, list_assessments, save_assessment
 from app.models import AnalysisResponse, AssessmentInput, AssessmentSummary
 from app.report import build_pdf
+from app.rules import rule_based_analysis
 from app.scoring import score_assessment
 
 # Loading settings here means a missing .env value stops the app at startup.
@@ -63,7 +64,7 @@ def health() -> dict[str, str]:
 # are not stuck behind it.
 @app.post("/analyse", response_model=AnalysisResponse)
 def analyse(data: AssessmentInput, db: DbSession) -> AnalysisResponse:
-    """Score one company, ask Claude to explain the result, and save it.
+    """Score one company, write the analysis text, and save it.
 
     Typing the parameter as AssessmentInput makes FastAPI validate the JSON
     body first: invalid input gets a 422 and never reaches scoring or Claude.
@@ -71,12 +72,21 @@ def analyse(data: AssessmentInput, db: DbSession) -> AnalysisResponse:
     score = score_assessment(data)
     csrd = compute_readiness(data.csrd_available)
 
-    # The score is deterministic and always available. If the AI part fails,
-    # still return (and save) the score and explain what went wrong.
-    try:
-        response = AnalysisResponse(score=score, csrd=csrd, ai_analysis=analyse_with_claude(data, score))
-    except AnalysisError as exc:
-        response = AnalysisResponse(score=score, csrd=csrd, ai_analysis=None, ai_error=str(exc))
+    # Text part: Claude if an API key is configured, otherwise free fixed rules.
+    # If Claude is configured but fails, the rules take over and the reason is
+    # kept, so the user always gets a complete report.
+    ai_error = None
+    if settings.ai_enabled:
+        try:
+            analysis, source = analyse_with_claude(data, score), "ai"
+        except AnalysisError as exc:
+            ai_error = str(exc)
+    if not settings.ai_enabled or ai_error:
+        analysis, source = rule_based_analysis(data, score, csrd), "rules"
+
+    response = AnalysisResponse(
+        score=score, csrd=csrd, ai_analysis=analysis, analysis_source=source, ai_error=ai_error
+    )
 
     record = save_assessment(db, data, response)
     # model_validate (not model_copy) so the UTC validator on created_at runs.

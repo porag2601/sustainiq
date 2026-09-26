@@ -2,8 +2,8 @@
 
 Why a settings class instead of reading os.environ everywhere:
 - One place lists every setting the app needs.
-- Pydantic validates types and fails at startup if something is missing,
-  instead of crashing later in the middle of a request.
+- Pydantic validates types at startup, instead of crashing later in the
+  middle of a request.
 - Secrets (the API key) stay out of the source code and out of Git.
 """
 
@@ -16,9 +16,10 @@ class Settings(BaseSettings):
     # Field names map to env variables case-insensitively:
     # anthropic_api_key <- ANTHROPIC_API_KEY, and so on.
 
-    # Required: no default, so the app refuses to start without them.
-    anthropic_api_key: str
-    claude_model: str
+    # Optional: without them the app runs for free and writes the analysis
+    # text with fixed rules (rules.py) instead of calling Claude.
+    anthropic_api_key: str = ""
+    claude_model: str = ""
 
     # Comma-separated list of frontend URLs allowed to call the API (CORS).
     # Default = Vite dev server. In production, set the real Vercel domain.
@@ -32,6 +33,16 @@ class Settings(BaseSettings):
     # Real environment variables override values in .env, which is how
     # Render will inject secrets later.
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+    @property
+    def ai_enabled(self) -> bool:
+        """True only if a real key and a model are set.
+
+        The placeholders from .env.example ("your-...") count as not set,
+        so copying the example file never triggers failing API calls.
+        """
+        key, model = self.anthropic_api_key.strip(), self.claude_model.strip()
+        return bool(key and model) and not key.startswith("your-") and not model.startswith("your-")
 
     @property
     def cors_origin_list(self) -> list[str]:

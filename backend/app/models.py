@@ -105,7 +105,8 @@ class ScoreResult(BaseModel):
 # against them. Literal = only these exact strings are allowed.
 # No numeric limits here on purpose: the schema should stay simple for the API.
 
-EsrsStandard = Literal["E1", "E2", "E3", "E5"]
+# "ESRS 2" = general disclosures, e.g. the double materiality assessment.
+EsrsStandard = Literal["ESRS 2", "E1", "E2", "E3", "E5"]
 
 
 class Recommendation(BaseModel):
@@ -139,8 +140,13 @@ class AnalysisResponse(BaseModel):
     score: ScoreResult
     # None only for assessments saved before the checklist existed.
     csrd: CsrdReadiness | None = None
-    # None when the Claude call failed; the score is still valid on its own.
+    # The text part: written by Claude or, for free, by fixed rules (rules.py).
+    # None only in old assessments where the AI call failed.
     ai_analysis: AIAnalysis | None
+    # Who wrote ai_analysis, so the UI and PDF never present rule text as AI.
+    # None in assessments saved before this field existed (those were AI).
+    analysis_source: Literal["ai", "rules"] | None = None
+    # Why the AI was not used although it is configured (e.g. rate limit).
     ai_error: str | None = None
 
 
