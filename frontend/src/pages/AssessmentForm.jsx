@@ -69,7 +69,7 @@ function AssessmentForm({ onResult }) {
     }
 
     try {
-      onResult(await analyseCompany(payload))
+      onResult(await analyseCompany(payload), payload.company_name)
     } catch (err) {
       if (err instanceof ValidationError) setFieldErrors(err.fieldErrors)
       setError(err.message)

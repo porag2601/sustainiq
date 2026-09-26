@@ -103,3 +103,4 @@ sustainiq/
   - TODO: live test with real ANTHROPIC_API_KEY + CLAUDE_MODEL in backend/.env
 - [x] Step 9: frontend scaffold (Vite 8 + React 19, Tailwind CSS 4 via @tailwindcss/vite), demo files removed, start page
 - [x] Step 10: api/client.js (analyseCompany, 422 -> field errors), FormField component, AssessmentForm page (9 fields, example data button), raw JSON result view (temporary)
+- [x] Step 11: Results page (overall score, MetricCard per metric with indicative label + source, AiAnalysis with fallback notice, New assessment button). Phase 1 MVP feature-complete.

@@ -1,10 +1,18 @@
 import { useState } from 'react'
 import AssessmentForm from './pages/AssessmentForm'
+import Results from './pages/Results'
 
-// Root component: holds the latest result and shows the form.
-// The raw JSON view is temporary; the Results page replaces it next step.
+// Root component. Shows the form until a result exists, then the results page.
+// Two "pages" only, so a simple if/else is enough; no router library needed yet.
 function App() {
   const [result, setResult] = useState(null)
+  const [companyName, setCompanyName] = useState('')
+
+  function handleResult(newResult, name) {
+    setResult(newResult)
+    setCompanyName(name)
+    window.scrollTo({ top: 0 })
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-800">
@@ -17,17 +25,10 @@ function App() {
           </p>
         </header>
 
-        <AssessmentForm onResult={setResult} />
-
-        {result && (
-          <section className="rounded-lg bg-white p-6 shadow">
-            <h2 className="text-xl font-semibold">
-              Overall score: {result.score.overall_score} / 100
-            </h2>
-            <pre className="mt-4 max-h-96 overflow-auto rounded bg-slate-100 p-4 text-xs">
-              {JSON.stringify(result, null, 2)}
-            </pre>
-          </section>
+        {result ? (
+          <Results result={result} companyName={companyName} onReset={() => setResult(null)} />
+        ) : (
+          <AssessmentForm onResult={handleResult} />
         )}
       </div>
     </main>
