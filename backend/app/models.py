@@ -6,6 +6,7 @@ so scoring and the Claude call only ever see clean, plausible numbers.
 """
 
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -72,3 +73,42 @@ class ScoreResult(BaseModel):
     overall_score: float = Field(ge=0, le=100)
     metrics: list[MetricResult]
 
+
+# --- Claude's answer ------------------------------------------------------
+# These classes are sent to Claude as a JSON schema (structured outputs), so
+# Claude must answer in exactly this shape, and the SDK validates the answer
+# against them. Literal = only these exact strings are allowed.
+# No numeric limits here on purpose: the schema should stay simple for the API.
+
+EsrsStandard = Literal["E1", "E2", "E3", "E5"]
+
+
+class Recommendation(BaseModel):
+    title: str
+    description: str
+    esrs_standard: EsrsStandard
+    priority: Literal["high", "medium", "low"]
+    # e.g. "KfW 295" or "BAFA EEW"; None when no funding programme fits.
+    funding_hint: str | None
+
+
+class CsrdGap(BaseModel):
+    esrs_standard: EsrsStandard
+    gap: str     # what is missing for CSRD / ESRS reporting
+    action: str  # concrete next step to close the gap
+
+
+class AIAnalysis(BaseModel):
+    summary: str
+    recommendations: list[Recommendation]
+    csrd_gaps: list[CsrdGap]
+    quick_wins: list[str]
+
+
+class AnalysisResponse(BaseModel):
+    """What POST /analyse returns: the score always, the AI text if it worked."""
+
+    score: ScoreResult
+    # None when the Claude call failed; the score is still valid on its own.
+    ai_analysis: AIAnalysis | None
+    ai_error: str | None = None

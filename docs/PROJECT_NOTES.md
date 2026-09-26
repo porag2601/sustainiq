@@ -99,3 +99,5 @@ sustainiq/
   - TODO: verify values against real Eurostat/UBA downloads; switch to indicative=False only with exact table + year
 - [x] Step 6: scoring.py (per-FTE metrics, linear 0-100 metric score, weighted overall score), MetricResult/ScoreResult schemas, 51 tests passing
 - [x] Step 7: POST /analyse (validated input, returns ScoreResult, no Claude yet), API tests with TestClient + httpx2, 57 tests passing
+- [x] Step 8: analyzer.py (Claude via anthropic SDK messages.parse, structured AIAnalysis output, friendly errors), /analyse returns AnalysisResponse (score always, AI text if available), 68 tests passing with fake client
+  - TODO: live test with real ANTHROPIC_API_KEY + CLAUDE_MODEL in backend/.env
