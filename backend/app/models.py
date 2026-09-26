@@ -46,3 +46,29 @@ class AssessmentInput(BaseModel):
     waste_t: float = Field(ge=0, description="Total waste, tonnes per year")
     recycling_rate_pct: float = Field(ge=0, le=100, description="Share of waste recycled, %")
     water_m3: float = Field(ge=0, description="Water use, m3 per year")
+
+
+class MetricResult(BaseModel):
+    """One metric of the company compared with its sector benchmark."""
+
+    key: str
+    value: float
+    unit: str
+    benchmark_value: float
+    # Copied from the benchmark so the UI can show the source and the
+    # "indicative" label next to every comparison.
+    benchmark_source: str
+    benchmark_indicative: bool
+    higher_is_better: bool
+    # Difference to the benchmark in %: +20 means 20 % above the benchmark.
+    diff_pct: float
+    score: float = Field(ge=0, le=100)
+    status: str  # "better", "on_par" or "worse" than the benchmark
+
+
+class ScoreResult(BaseModel):
+    """Deterministic scoring output, calculated in Python (not by Claude)."""
+
+    overall_score: float = Field(ge=0, le=100)
+    metrics: list[MetricResult]
+
