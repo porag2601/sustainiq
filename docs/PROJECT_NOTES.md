@@ -114,3 +114,5 @@ sustainiq/
 - [x] Step 18 (Phase 3): CSRD checklist backend: csrd.py (12 key ESRS Set 1 data points, readiness per standard), AssessmentInput.csrd_available (validated ids), AnalysisResponse.csrd, GET /csrd/checklist, missing items in Claude prompt, old saved assessments still load, 98 tests passing
   - Note: ESRS references follow Set 1 (2023); EU Omnibus simplification may change numbering/scope
 - [x] Step 19 (Phase 3): CSRD checklist frontend (CsrdChecklist checkboxes in form, loaded once in App), CsrdReadiness card on results, CSRD section in PDF, shared ESRS labels, 99 tests passing
+- [x] Step 20 (Phase 3): deployment prep: PostgreSQL support (psycopg 3, URL normalisation, pool_pre_ping), render.yaml Blueprint (Frankfurt, health check, secrets sync:false), 104 tests passing
+  - TODO (needs user accounts): Neon database, Render Blueprint, Vercel project; live test against real PostgreSQL

@@ -1,0 +1,32 @@
+# Render "Blueprint": the backend's hosting setup as code.
+# Render reads this file when you create a Blueprint from the GitHub repo.
+# Secrets use "sync: false": Render asks for them in its dashboard,
+# so they are never stored in Git.
+services:
+  - type: web
+    name: sustainiq-api
+    runtime: python
+    plan: free
+    # Frankfurt: closest region to German users and keeps data in the EU.
+    region: frankfurt
+    # The backend lives in a subfolder of the repository.
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Render sets $PORT; 0.0.0.0 makes the server reachable from outside the container.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # Render calls this route to check the app is alive before sending traffic.
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLAUDE_MODEL
+        sync: false
+      # PostgreSQL connection string from Neon (or another host).
+      # Required on Render: the free tier deletes local files, so SQLite data would be lost.
+      - key: DATABASE_URL
+        sync: false
+      # The Vercel frontend URL, e.g. https://sustainiq.vercel.app
+      - key: CORS_ORIGINS
+        sync: false

@@ -1,6 +1,9 @@
 """Tests for saving and reading assessments (uses the in-memory db_session fixture)."""
 
-from app.database import get_assessment, list_assessments, save_assessment
+import pytest
+from sqlalchemy import create_engine
+
+from app.database import get_assessment, list_assessments, normalize_database_url, save_assessment
 from app.models import AnalysisResponse, AssessmentInput
 from app.scoring import score_assessment
 
@@ -60,3 +63,26 @@ def test_filter_by_company_name_is_case_insensitive(db_session):
     save(db_session, "Muster GmbH")
     rows = list_assessments(db_session, company_name="  muster gmbh ")
     assert [r.company_name for r in rows] == ["Muster GmbH", "Muster GmbH"]
+
+
+# --- PostgreSQL URL handling (deployment) --------------------------------
+
+
+@pytest.mark.parametrize(
+    ("given", "expected"),
+    [
+        ("postgresql://u:p@host/db?sslmode=require", "postgresql+psycopg://u:p@host/db?sslmode=require"),
+        ("postgres://u:p@host:5432/db", "postgresql+psycopg://u:p@host:5432/db"),
+        ("postgresql+psycopg://u:p@host/db", "postgresql+psycopg://u:p@host/db"),
+        ("sqlite:///./sustainiq.db", "sqlite:///./sustainiq.db"),
+    ],
+)
+def test_normalize_database_url(given, expected):
+    assert normalize_database_url(given) == expected
+
+
+def test_postgres_driver_is_installed():
+    # Creating an engine loads the driver but opens no connection,
+    # so this runs without a PostgreSQL server.
+    engine = create_engine(normalize_database_url("postgresql://u:p@localhost/db"))
+    assert engine.dialect.driver == "psycopg"

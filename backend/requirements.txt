@@ -8,6 +8,9 @@ uvicorn==0.54.0
 anthropic==1.8.0
 # Database toolkit: maps Python classes to SQLite tables (past assessments).
 sqlalchemy==2.1.1
+# PostgreSQL driver for production (Neon). [binary] ships compiled code, so no
+# PostgreSQL client libraries need to be installed on the server.
+psycopg[binary]==3.3.6
 # PDF report export. Pure Python, so no system libraries needed on Windows or Render.
 reportlab==5.0.1
 # Loads settings (API key, model name, CORS origins) from .env with validation.

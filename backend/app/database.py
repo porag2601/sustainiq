@@ -1,4 +1,8 @@
-"""SQLite storage for past assessments, using SQLAlchemy 2.0.
+"""Storage for past assessments, using SQLAlchemy 2.x.
+
+SQLite locally (a file, zero setup), PostgreSQL in production (Render's free
+tier deletes local files on every restart). The same code works for both;
+only DATABASE_URL changes.
 
 SQLAlchemy maps the Python class AssessmentRecord to the SQL table
 "assessments", so the code works with objects instead of raw SQL strings.
@@ -14,14 +18,34 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sess
 from app.config import get_settings
 from app.models import AnalysisResponse, AssessmentInput
 
-_url = get_settings().database_url
-# SQLite allows a connection only in the thread that created it by default.
-# FastAPI handles requests in a thread pool, so this check must be switched off.
-_connect_args = {"check_same_thread": False} if _url.startswith("sqlite") else {}
+def normalize_database_url(url: str) -> str:
+    """Make hosting providers' PostgreSQL URLs use the psycopg (v3) driver.
 
-# The engine manages connections to the database file. Nothing is opened
-# until the first query, so importing this module creates no file.
-engine = create_engine(_url, connect_args=_connect_args)
+    Neon/Render give "postgresql://..." or the old "postgres://..." form.
+    Without an explicit driver, SQLAlchemy would look for the older psycopg2
+    package, which is not installed. Other URLs (SQLite) stay unchanged.
+    """
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url.removeprefix(prefix)
+    return url
+
+
+_url = normalize_database_url(get_settings().database_url)
+
+if _url.startswith("sqlite"):
+    # SQLite allows a connection only in the thread that created it by default.
+    # FastAPI handles requests in a thread pool, so this check must be switched off.
+    _engine_options = {"connect_args": {"check_same_thread": False}}
+else:
+    # pool_pre_ping tests a pooled connection before using it. Hosted PostgreSQL
+    # (e.g. Neon) closes idle connections; without this, the first request
+    # after a quiet period would fail.
+    _engine_options = {"pool_pre_ping": True}
+
+# The engine manages database connections. Nothing is opened until the
+# first query, so importing this module creates no file and no connection.
+engine = create_engine(_url, **_engine_options)
 SessionLocal = sessionmaker(bind=engine)
 
 
