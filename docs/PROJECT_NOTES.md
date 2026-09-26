@@ -101,3 +101,4 @@ sustainiq/
 - [x] Step 7: POST /analyse (validated input, returns ScoreResult, no Claude yet), API tests with TestClient + httpx2, 57 tests passing
 - [x] Step 8: analyzer.py (Claude via anthropic SDK messages.parse, structured AIAnalysis output, friendly errors), /analyse returns AnalysisResponse (score always, AI text if available), 68 tests passing with fake client
   - TODO: live test with real ANTHROPIC_API_KEY + CLAUDE_MODEL in backend/.env
+- [x] Step 9: frontend scaffold (Vite 8 + React 19, Tailwind CSS 4 via @tailwindcss/vite), demo files removed, start page

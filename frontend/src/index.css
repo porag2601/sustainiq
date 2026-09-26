@@ -1,0 +1,2 @@
+/* Loads Tailwind: base styles plus all utility classes used in our components. */
+@import "tailwindcss";
