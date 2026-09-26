@@ -1,4 +1,5 @@
 import AiAnalysis from '../components/AiAnalysis'
+import BenchmarkChart from '../components/BenchmarkChart'
 import MetricCard from '../components/MetricCard'
 
 // Same +/- 5 band around 50 as ON_PAR_BAND in backend/app/scoring.py.
@@ -26,6 +27,8 @@ function Results({ result, companyName, onReset }) {
           50 = exactly at the sector benchmark. Benchmarks are indicative estimates, not official statistics.
         </p>
       </section>
+
+      <BenchmarkChart metrics={score.metrics} />
 
       <section>
         <h2 className="mb-4 text-xl font-semibold">Benchmark comparison</h2>

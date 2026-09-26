@@ -1,14 +1,6 @@
-// One metric: company value vs. sector benchmark, score bar and status.
+import { formatNumber, metricLabel } from '../metrics'
 
-// Readable names for the metric keys sent by the backend (scoring.py).
-const METRIC_LABELS = {
-  energy_kwh_per_fte: 'Energy per employee',
-  scope12_t_per_fte: 'Scope 1+2 emissions per employee',
-  waste_t_per_fte: 'Waste per employee',
-  water_m3_per_fte: 'Water per employee',
-  renewable_share_pct: 'Renewable energy share',
-  recycling_rate_pct: 'Recycling rate',
-}
+// One metric: company value vs. sector benchmark, score bar and status.
 
 // Tailwind only generates classes it finds written out in full in the code,
 // so colours are listed as complete strings, never built like `bg-${color}-100`.
@@ -18,10 +10,6 @@ const STATUS_STYLES = {
   worse: { label: 'Worse than benchmark', badge: 'bg-red-100 text-red-800', bar: 'bg-red-500' },
 }
 
-function formatNumber(value) {
-  return value.toLocaleString('en-US', { maximumFractionDigits: 1 })
-}
-
 function MetricCard({ metric }) {
   const style = STATUS_STYLES[metric.status]
   const sign = metric.diff_pct > 0 ? '+' : ''
@@ -29,7 +17,7 @@ function MetricCard({ metric }) {
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold">{METRIC_LABELS[metric.key] ?? metric.key}</h3>
+        <h3 className="font-semibold">{metricLabel(metric.key)}</h3>
         <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${style.badge}`}>
           {style.label}
         </span>

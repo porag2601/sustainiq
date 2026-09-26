@@ -104,3 +104,4 @@ sustainiq/
 - [x] Step 9: frontend scaffold (Vite 8 + React 19, Tailwind CSS 4 via @tailwindcss/vite), demo files removed, start page
 - [x] Step 10: api/client.js (analyseCompany, 422 -> field errors), FormField component, AssessmentForm page (9 fields, example data button), raw JSON result view (temporary)
 - [x] Step 11: Results page (overall score, MetricCard per metric with indicative label + source, AiAnalysis with fallback notice, New assessment button). Phase 1 MVP feature-complete.
+- [x] Step 12 (Phase 2): BenchmarkChart with Recharts (horizontal bars of 0-100 scores, dashed benchmark line at 50, tooltip with real values), shared metrics.js, Results lazy-loaded (code splitting)

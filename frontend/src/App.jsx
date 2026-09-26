@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import AssessmentForm from './pages/AssessmentForm'
-import Results from './pages/Results'
+
+// Code splitting: Results (and the large Recharts library it uses) is loaded
+// only when the first result arrives, so the form page opens faster.
+const Results = lazy(() => import('./pages/Results'))
 
 // Root component. Shows the form until a result exists, then the results page.
 // Two "pages" only, so a simple if/else is enough; no router library needed yet.
@@ -26,7 +29,10 @@ function App() {
         </header>
 
         {result ? (
-          <Results result={result} companyName={companyName} onReset={() => setResult(null)} />
+          // Suspense shows the fallback while the Results code is downloading.
+          <Suspense fallback={<p className="text-center text-slate-500">Loading results…</p>}>
+            <Results result={result} companyName={companyName} onReset={() => setResult(null)} />
+          </Suspense>
         ) : (
           <AssessmentForm onResult={handleResult} />
         )}
