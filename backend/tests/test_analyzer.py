@@ -128,3 +128,12 @@ def _api_error(error_class, status_code):
 def test_api_errors_become_friendly_analysis_errors(error, message_part):
     with pytest.raises(AnalysisError, match=message_part):
         analyse_with_claude(DATA, SCORE, client=fake_client(error=error))
+
+
+def test_prompt_lists_missing_csrd_data():
+    data = DATA.model_copy(update={"csrd_available": ["e1_scope12"]})
+    prompt = build_prompt(data, SCORE)
+    payload = json.loads(prompt[prompt.index("{"):])
+    assert payload["csrd_data_available"] == ["E1-6 Scope 1 and 2 GHG emissions"]
+    assert "E1-6 Scope 3 GHG emissions" in payload["csrd_data_missing"]
+    assert "E1-6 Scope 1 and 2 GHG emissions" not in payload["csrd_data_missing"]

@@ -11,6 +11,8 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 
+from app.csrd import CHECKLIST_IDS, CsrdReadiness
+
 
 def _as_utc(value: datetime) -> datetime:
     return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
@@ -20,6 +22,14 @@ def _as_utc(value: datetime) -> datetime:
 # so mark it explicitly: JSON then says "...Z" and browsers convert correctly
 # to local time, instead of guessing and showing a wrong hour.
 UtcDatetime = Annotated[datetime, AfterValidator(_as_utc)]
+
+
+def _known_checklist_ids(ids: list[str]) -> list[str]:
+    unknown = set(ids) - CHECKLIST_IDS
+    if unknown:
+        raise ValueError(f"unknown checklist ids: {', '.join(sorted(unknown))}")
+    # dict.fromkeys removes duplicates but keeps the order.
+    return list(dict.fromkeys(ids))
 
 
 class Sector(str, Enum):
@@ -58,6 +68,10 @@ class AssessmentInput(BaseModel):
     waste_t: float = Field(ge=0, description="Total waste, tonnes per year")
     recycling_rate_pct: float = Field(ge=0, le=100, description="Share of waste recycled, %")
     water_m3: float = Field(ge=0, description="Water use, m3 per year")
+
+    # IDs of CSRD checklist data points the company already has (see csrd.py).
+    # Optional with an empty default, so older saved assessments still load.
+    csrd_available: Annotated[list[str], AfterValidator(_known_checklist_ids)] = Field(default_factory=list)
 
 
 class MetricResult(BaseModel):
@@ -123,6 +137,8 @@ class AnalysisResponse(BaseModel):
     id: int | None = None
     created_at: UtcDatetime | None = None
     score: ScoreResult
+    # None only for assessments saved before the checklist existed.
+    csrd: CsrdReadiness | None = None
     # None when the Claude call failed; the score is still valid on its own.
     ai_analysis: AIAnalysis | None
     ai_error: str | None = None

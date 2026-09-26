@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.analyzer import AnalysisError, analyse_with_claude
 from app.config import get_settings
+from app.csrd import CHECKLIST, ChecklistItem, compute_readiness
 from app.database import create_tables, get_assessment, get_db, list_assessments, save_assessment
 from app.models import AnalysisResponse, AssessmentInput, AssessmentSummary
 from app.report import build_pdf
@@ -68,19 +69,26 @@ def analyse(data: AssessmentInput, db: DbSession) -> AnalysisResponse:
     body first: invalid input gets a 422 and never reaches scoring or Claude.
     """
     score = score_assessment(data)
+    csrd = compute_readiness(data.csrd_available)
 
     # The score is deterministic and always available. If the AI part fails,
     # still return (and save) the score and explain what went wrong.
     try:
-        response = AnalysisResponse(score=score, ai_analysis=analyse_with_claude(data, score))
+        response = AnalysisResponse(score=score, csrd=csrd, ai_analysis=analyse_with_claude(data, score))
     except AnalysisError as exc:
-        response = AnalysisResponse(score=score, ai_analysis=None, ai_error=str(exc))
+        response = AnalysisResponse(score=score, csrd=csrd, ai_analysis=None, ai_error=str(exc))
 
     record = save_assessment(db, data, response)
     # model_validate (not model_copy) so the UTC validator on created_at runs.
     return AnalysisResponse.model_validate(
         {**response.model_dump(), "id": record.id, "created_at": record.created_at}
     )
+
+
+@app.get("/csrd/checklist", response_model=list[ChecklistItem])
+def csrd_checklist() -> tuple[ChecklistItem, ...]:
+    """The CSRD data checklist, so the frontend does not keep its own copy."""
+    return CHECKLIST
 
 
 @app.get("/assessments", response_model=list[AssessmentSummary])

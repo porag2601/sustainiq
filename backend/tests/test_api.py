@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 import app.main
 from app.analyzer import AnalysisError
-from app.database import get_db
+from app.database import AssessmentRecord, get_db
 from app.main import app as fastapi_app
 from app.models import AIAnalysis
 
@@ -165,3 +165,37 @@ def test_assessments_can_be_filtered_by_company():
     rows = client.get("/assessments", params={"company_name": "test gmbh"}).json()
     assert len(rows) == 2
     assert {row["company_name"] for row in rows} == {"Test GmbH"}
+
+
+# --- CSRD checklist -------------------------------------------------------
+
+def test_checklist_endpoint():
+    items = client.get("/csrd/checklist").json()
+    assert len(items) == 12
+    assert {"id", "standard", "reference", "title", "hint"} <= items[0].keys()
+
+
+def test_analyse_returns_and_saves_csrd_readiness():
+    created = client.post("/analyse", json={**AT_BENCHMARK, "csrd_available": ["e1_scope12", "e3_water"]}).json()
+    assert created["csrd"]["available"] == 2
+    loaded = client.get(f"/assessments/{created['id']}").json()
+    assert loaded["csrd"] == created["csrd"]
+
+
+def test_unknown_checklist_id_returns_422():
+    response = client.post("/analyse", json={**AT_BENCHMARK, "csrd_available": ["made_up"]})
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "csrd_available"]
+
+
+def test_assessment_saved_before_checklist_still_loads(db_session):
+    # Simulate an old row: no csrd_available in the input, no csrd in the result.
+    created = client.post("/analyse", json=AT_BENCHMARK).json()
+    record = db_session.get(AssessmentRecord, created["id"])
+    record.input_data = {k: v for k, v in record.input_data.items() if k != "csrd_available"}
+    record.result = {k: v for k, v in record.result.items() if k != "csrd"}
+    db_session.commit()
+    loaded = client.get(f"/assessments/{created['id']}")
+    assert loaded.status_code == 200
+    assert loaded.json()["csrd"] is None
+    assert client.get(f"/assessments/{created['id']}/pdf").status_code == 200

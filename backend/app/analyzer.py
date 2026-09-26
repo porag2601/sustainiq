@@ -11,6 +11,7 @@ import logging
 import anthropic
 
 from app.config import get_settings
+from app.csrd import compute_readiness, item_titles
 from app.models import AIAnalysis, AssessmentInput, ScoreResult
 
 logger = logging.getLogger(__name__)
@@ -32,8 +33,9 @@ Rules:
   E1 climate and energy, E2 pollution, E3 water, E5 resource use and circular economy.
 - Where it fits, name German regulation (EnEfG, CSRD, EU Taxonomy) and German
   funding programmes (KfW, BAFA) by name. Use null for funding_hint otherwise.
-- CSRD gaps: point out data the company would need for ESRS reporting but has
-  not provided (e.g. Scope 3 emissions, E2 pollutant data, energy audit).
+- CSRD gaps: base them on "csrd_data_missing" (data points the company said it
+  does not have yet). Prioritise the most important missing items. Do not list
+  items from "csrd_data_available" as gaps.
 - Give 3 to 5 recommendations, 2 to 4 CSRD gaps and 3 quick wins.
   Quick wins are low-cost actions possible within 3 months.
 - Write in clear, plain English for a managing director, not an expert.
@@ -69,6 +71,9 @@ def build_prompt(data: AssessmentInput, score: ScoreResult) -> str:
             }
             for m in score.metrics
         ],
+        # From the CSRD checklist in the form (see csrd.py).
+        "csrd_data_available": item_titles(data.csrd_available),
+        "csrd_data_missing": item_titles(compute_readiness(data.csrd_available).missing_ids),
     }
     return (
         "Write the assessment for this company. The data is JSON:\n\n"

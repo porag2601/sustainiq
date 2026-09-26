@@ -111,3 +111,5 @@ sustainiq/
 - [x] Step 16 (Phase 2): PDF report with ReportLab (report.py, GET /assessments/{id}/pdf, all user/AI text escaped), "Download PDF report" button, 83 tests passing. Phase 2 complete.
 - [x] Step 17 (Phase 3): progress tracking: GET /assessments?company_name= (case-insensitive), ProgressChart (Recharts line of overall score over time, change vs previous), 85 tests passing
   - Note: companies are matched by name; SQLite lower() is ASCII-only (umlauts match case-sensitively until PostgreSQL)
+- [x] Step 18 (Phase 3): CSRD checklist backend: csrd.py (12 key ESRS Set 1 data points, readiness per standard), AssessmentInput.csrd_available (validated ids), AnalysisResponse.csrd, GET /csrd/checklist, missing items in Claude prompt, old saved assessments still load, 98 tests passing
+  - Note: ESRS references follow Set 1 (2023); EU Omnibus simplification may change numbering/scope
