@@ -84,9 +84,14 @@ def analyse(data: AssessmentInput, db: DbSession) -> AnalysisResponse:
 
 
 @app.get("/assessments", response_model=list[AssessmentSummary])
-def assessments(db: DbSession) -> list[AssessmentSummary]:
-    """List saved assessments, newest first."""
-    return [AssessmentSummary.model_validate(record) for record in list_assessments(db)]
+def assessments(db: DbSession, company_name: str | None = None) -> list[AssessmentSummary]:
+    """List saved assessments, newest first.
+
+    Optional ?company_name=... returns only that company's history
+    (used for progress tracking).
+    """
+    records = list_assessments(db, company_name=company_name)
+    return [AssessmentSummary.model_validate(record) for record in records]
 
 
 def _load(db: Session, assessment_id: int) -> tuple[AssessmentInput, AnalysisResponse]:

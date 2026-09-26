@@ -2,6 +2,7 @@ import { assessmentPdfUrl } from '../api/client'
 import AiAnalysis from '../components/AiAnalysis'
 import BenchmarkChart from '../components/BenchmarkChart'
 import MetricCard from '../components/MetricCard'
+import ProgressChart from '../components/ProgressChart'
 import ScoreGauge from '../components/ScoreGauge'
 import { formatDate } from '../metrics'
 
@@ -23,6 +24,8 @@ function Results({ result, companyName, onReset }) {
           </p>
         )}
       </section>
+
+      <ProgressChart companyName={companyName} />
 
       <BenchmarkChart metrics={score.metrics} />
 

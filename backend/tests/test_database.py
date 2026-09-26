@@ -52,3 +52,11 @@ def test_list_respects_limit(db_session):
 
 def test_missing_assessment_returns_none(db_session):
     assert get_assessment(db_session, 999) is None
+
+
+def test_filter_by_company_name_is_case_insensitive(db_session):
+    save(db_session, "Muster GmbH")
+    save(db_session, "Other AG")
+    save(db_session, "Muster GmbH")
+    rows = list_assessments(db_session, company_name="  muster gmbh ")
+    assert [r.company_name for r in rows] == ["Muster GmbH", "Muster GmbH"]

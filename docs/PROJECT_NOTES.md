@@ -109,3 +109,5 @@ sustainiq/
 - [x] Step 14 (Phase 2): PastAssessments list on form page (opens saved report), shared request() helper in client.js, dates sent as UTC ("Z") and shown in local time
 - [x] Step 15 (Phase 2): ScoreGauge (plain SVG semicircle, pathLength=100, status colour, benchmark tick at 50) replaces the big score number
 - [x] Step 16 (Phase 2): PDF report with ReportLab (report.py, GET /assessments/{id}/pdf, all user/AI text escaped), "Download PDF report" button, 83 tests passing. Phase 2 complete.
+- [x] Step 17 (Phase 3): progress tracking: GET /assessments?company_name= (case-insensitive), ProgressChart (Recharts line of overall score over time, change vs previous), 85 tests passing
+  - Note: companies are matched by name; SQLite lower() is ASCII-only (umlauts match case-sensitively until PostgreSQL)

@@ -156,3 +156,12 @@ def test_download_pdf():
 
 def test_pdf_for_missing_assessment_returns_404():
     assert client.get("/assessments/999/pdf").status_code == 404
+
+
+def test_assessments_can_be_filtered_by_company():
+    client.post("/analyse", json=AT_BENCHMARK)
+    client.post("/analyse", json={**AT_BENCHMARK, "company_name": "Other AG"})
+    client.post("/analyse", json=AT_BENCHMARK)
+    rows = client.get("/assessments", params={"company_name": "test gmbh"}).json()
+    assert len(rows) == 2
+    assert {row["company_name"] for row in rows} == {"Test GmbH"}

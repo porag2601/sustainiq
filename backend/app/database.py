@@ -8,7 +8,7 @@ That also protects against SQL injection: values are always sent as parameters.
 from collections.abc import Iterator
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, String, create_engine, select
+from sqlalchemy import JSON, DateTime, Float, String, create_engine, func, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from app.config import get_settings
@@ -77,9 +77,18 @@ def save_assessment(db: Session, data: AssessmentInput, response: AnalysisRespon
     return record
 
 
-def list_assessments(db: Session, limit: int = 50) -> list[AssessmentRecord]:
-    """Newest first. The limit keeps the response small as data grows."""
-    query = select(AssessmentRecord).order_by(AssessmentRecord.id.desc()).limit(limit)
+def list_assessments(
+    db: Session, limit: int = 50, company_name: str | None = None
+) -> list[AssessmentRecord]:
+    """Newest first. The limit keeps the response small as data grows.
+
+    company_name filters to one company for progress tracking. The match is
+    case-insensitive and ignores outer spaces, so "muster gmbh " finds "Muster GmbH".
+    """
+    query = select(AssessmentRecord)
+    if company_name:
+        query = query.where(func.lower(AssessmentRecord.company_name) == company_name.strip().lower())
+    query = query.order_by(AssessmentRecord.id.desc()).limit(limit)
     return list(db.scalars(query))
 
 

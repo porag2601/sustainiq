@@ -60,8 +60,11 @@ export function analyseCompany(data) {
 }
 
 // Saved assessments, newest first: [{ id, created_at, company_name, sector, overall_score }].
-export function listAssessments() {
-  return request('/assessments')
+// With companyName, only that company's history (for progress tracking).
+export function listAssessments(companyName) {
+  // URLSearchParams encodes spaces and characters like "&" safely.
+  const query = companyName ? `?${new URLSearchParams({ company_name: companyName })}` : ''
+  return request(`/assessments${query}`)
 }
 
 // One saved assessment, in the same shape as analyseCompany() returns.
