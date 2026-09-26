@@ -1,30 +1,19 @@
 import AiAnalysis from '../components/AiAnalysis'
 import BenchmarkChart from '../components/BenchmarkChart'
 import MetricCard from '../components/MetricCard'
+import ScoreGauge from '../components/ScoreGauge'
 import { formatDate } from '../metrics'
 
-// Same +/- 5 band around 50 as ON_PAR_BAND in backend/app/scoring.py.
-function overallLabel(score) {
-  if (score > 55) return { text: 'Better than the sector benchmark', color: 'text-emerald-700' }
-  if (score < 45) return { text: 'Below the sector benchmark', color: 'text-red-700' }
-  return { text: 'Around the sector benchmark', color: 'text-amber-700' }
-}
-
-// result = { score, ai_analysis, ai_error } from POST /analyse.
+// result = { id, created_at, score, ai_analysis, ai_error } from the backend.
 function Results({ result, companyName, onReset }) {
   const { score, ai_analysis: analysis, ai_error: aiError } = result
-  const label = overallLabel(score.overall_score)
 
   return (
     <div className="space-y-8">
       <section className="rounded-lg bg-white p-6 text-center shadow">
-        <p className="text-sm text-slate-500">Sustainability score for {companyName}</p>
-        <p className={`mt-2 text-6xl font-bold ${label.color}`}>
-          {score.overall_score}
-          <span className="text-2xl font-normal text-slate-400"> / 100</span>
-        </p>
-        <p className={`mt-2 font-medium ${label.color}`}>{label.text}</p>
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mb-4 text-sm text-slate-500">Sustainability score for {companyName}</p>
+        <ScoreGauge score={score.overall_score} />
+        <p className="mt-4 text-xs text-slate-500">
           50 = exactly at the sector benchmark. Benchmarks are indicative estimates, not official statistics.
         </p>
         {result.id && (
