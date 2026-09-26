@@ -1,4 +1,7 @@
-# SustainIQ — Project brief for Claude Code
+# SustainIQ — Project notes
+
+Project brief, working rules and progress log. Also used as instructions for the
+AI coding assistant (Claude Code), which reads it through a local `CLAUDE.md`.
 
 AI-powered sustainability assessment tool for German SMEs. Companies enter
 operational data and receive EU benchmarking, a CSRD/ESRS gap analysis,
@@ -39,7 +42,7 @@ structure, and a clean Git history matter as much as features.
 ## Folder structure
 ```
 sustainiq/
-├── CLAUDE.md
+├── docs/PROJECT_NOTES.md   # this file (a local, git-ignored CLAUDE.md imports it)
 ├── README.md
 ├── .gitignore
 ├── backend/
@@ -121,3 +124,4 @@ sustainiq/
   - TODO: add live demo link and screenshots after deployment + real Claude run
 - [x] Step 22: free rule-based analysis (rules.py) used when no API key is set or Claude fails; API key now optional (Settings.ai_enabled, placeholders count as unset); analysis_source "ai"/"rules" labelled in UI and PDF; shared labels.py; 123 tests passing
   - Decision: app must run for free; Claude stays optional (user chose rule-based fallback over Ollama/other providers)
+- [x] Step 23: renamed CLAUDE.md to docs/PROJECT_NOTES.md; local git-ignored CLAUDE.md imports it (@docs/PROJECT_NOTES.md); commit author uses GitHub noreply email; repo on GitHub (porag2601/sustainiq)

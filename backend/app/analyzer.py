@@ -1,6 +1,6 @@
 """Builds the prompt, calls Claude, and returns a validated AIAnalysis.
 
-Division of work (see CLAUDE.md): Python calculates every number; Claude only
+Division of work (see docs/PROJECT_NOTES.md): Python calculates every number; Claude only
 writes text about those numbers. The prompt therefore hands Claude the finished
 score and tells it never to invent or recalculate figures.
 """
