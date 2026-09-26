@@ -95,3 +95,5 @@ sustainiq/
 - [x] Step 2: backend venv, requirements.txt (fastapi, uvicorn), FastAPI app with GET /health
 - [x] Step 3: config.py (pydantic-settings, loads .env), CORS limited to frontend origin
 - [x] Step 4: models.py (AssessmentInput + Sector enum with validation), pytest setup, 18 tests passing
+- [x] Step 5: benchmarks.py (5 sectors x 6 metrics, all indicative with source), 29 tests passing
+  - TODO: verify values against real Eurostat/UBA downloads; switch to indicative=False only with exact table + year
